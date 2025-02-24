@@ -1,0 +1,29 @@
+{
+  "name": "quant-fubon",
+  "version": "1.0.0",
+  "description": "Python and TypeScript version of interaction with Fubon TradeAPI",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "tsx src/index.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chuangtc/quant-fubon.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/chuangtc/quant-fubon/issues"
+  },
+  "homepage": "https://github.com/chuangtc/quant-fubon#readme",
+  "devDependencies": {
+    "@types/dotenv": "^6.1.1",
+    "tsx": "^4.19.3",
+    "typescript": "^5.7.3"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7"
+  }
+}
