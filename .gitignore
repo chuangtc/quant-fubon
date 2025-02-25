@@ -5,4 +5,5 @@ log/
 .env
 .venv
 
-
+# macOS
+.DS_Store

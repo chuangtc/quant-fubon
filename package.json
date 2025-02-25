@@ -26,7 +26,7 @@
   },
   "dependencies": {
     "dotenv": "^16.4.7",
-    "fubon-neo": "file:./lib/fubon-neo"
+    "fubon-neo": "file:./lib/fubon-neo-js"
   },
   "type": "module"
 }
