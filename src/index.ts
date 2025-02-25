@@ -1,17 +1,16 @@
 import * as dotenv from 'dotenv';
-dotenv.config(); // Load environment variables from .env
+import { FubonSDK, BSAction, TimeInForce, OrderType, PriceType, MarketType } from 'fubon-neo';
 
-function main() {
-  const myVariable = process.env.MY_VARIABLE;
-  const userid = process.env.USER_ID;
+dotenv.config(); 
 
-  if (myVariable) {
-    console.log(`MY_VARIABLE: ${myVariable}`);
-  }
-  if (userid) {
-    console.log(`USER_ID: ${userid}`);
-  } 
-  console.log('Hello, world!');
-}
+const userid = process.env.USER_ID;
+const userpassword = process.env.USER_PASSWORD;
+const pfx_path = process.env.PFX_PATH;
+const pfx_password = process.env.PFX_PASSWORD;
 
-main();
+// Initialize the SDK
+const sdk = new FubonSDK();
+
+//登入
+var accounts = sdk.login(userid, userpassword, pfx_path, pfx_password);  // 登入帳號 輸入:帳號、密碼、憑證路徑、憑證密碼
+console.log(accounts)
