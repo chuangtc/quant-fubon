@@ -2,6 +2,12 @@
 
 Python and TypeScript version of interaction with Fubon TradeAPI
 
+### Pre-Required
+
+- python3>=3.10
+- nvm (macOS, Linux) or nvm-windows (Windows)
+- node v22
+
 ## python3
 
 ### pip install
@@ -11,15 +17,10 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 pip install --force-reinstall --no-cache ./lib/fubon-neo-py/XXXX.whl
+python quant_fubon/run.py
 ```
 
 ## nodejs v22
-
-### Pre-Required
-
-- nvm
-- node v22
-- python3>=3.10
 
 ### Install TypeScript related
 
