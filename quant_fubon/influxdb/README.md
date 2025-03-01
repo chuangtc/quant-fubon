@@ -1,6 +1,6 @@
 # InfluxDB and Grafana
 
-## Instllation of Docker Desktop and influxdb/grafana docker containers on Windows 11
+## Installation of Docker Desktop and influxdb/grafana docker containers on Windows 11
 ```bash
 #Install influxDB via Docker
 docker run -d --name=influxdb -p 8086:8086 -v D:/influxdb-storage:/var/lib/influxdb2 influxdb:2.7
