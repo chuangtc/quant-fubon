@@ -81,7 +81,7 @@ def main()->None:
     sdk.init_realtime()
     # 建立行情查詢 WebAPI 連線 Object Instance
     restStock = sdk.marketdata.rest_client.stock
-    result = restStock.historical.candles(**{"symbol": "2330", "from": "2025-01-01", "to": "2025-02-28"})
+    result = restStock.historical.candles(**{"symbol": "0050", "from": "2024-01-01", "to": "2024-12-31"})
     write_to_influxdb(result)
     
 

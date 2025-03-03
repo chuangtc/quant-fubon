@@ -11,7 +11,7 @@ PFX_PATH = os.getenv('PFX_PATH')
 PFX_PASSWORD = os.getenv('PFX_PASSWORD')
 
 def main():
-    print("Hello, World!")
+    
     # 連結 API Server
     sdk = FubonSDK()
     accounts = sdk.login(USER_ID, USER_PASSWORD, PFX_PATH, PFX_PASSWORD)   # 登入帳號 輸入:帳號、密碼、憑證路徑、憑證密碼

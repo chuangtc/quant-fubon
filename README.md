@@ -14,10 +14,14 @@ Python and TypeScript version of interaction with Fubon TradeAPI
 
 ```bash
 python3 -m venv .venv
+# Linux and macOS
 source .venv/bin/activate
+# Windows 11
+.\.venv\Scripts\Activate.ps1
+
 pip install -r requirements.txt
 pip install --force-reinstall --no-cache ./lib/fubon-neo-py/XXXX.whl
-python quant_fubon/run.py
+python quant_fubon/run1_check_accounts.py
 ```
 
 ## nodejs v22
