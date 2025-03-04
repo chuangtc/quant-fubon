@@ -17,6 +17,8 @@ def main():
     sdk = FubonSDK()
     accounts = sdk.login(USER_ID, USER_PASSWORD, PFX_PATH, PFX_PASSWORD)   # 登入帳號 輸入:帳號、密碼、憑證路徑、憑證密碼
     
+    acc = accounts.data[0]
+
     # 定義單筆訂單內容
     
     order = Order(
@@ -35,12 +37,12 @@ def main():
     print(order)
 
     # 下單
-    order_reponse = sdk.stock.place_order(accounts.data[0], order)
+    order_reponse = sdk.stock.place_order(acc, order)
     print(order_reponse)
 
     time.sleep(10) # 等待10秒後查詢委託單狀態
 
-    result = sdk.stock.get_order_results(accounts.data[0])
+    result = sdk.stock.get_order_results(acc)
     print(f"筆數: {len(result.data)}")
     i = 0
     for order_result in result.data:
