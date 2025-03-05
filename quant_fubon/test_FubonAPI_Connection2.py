@@ -165,6 +165,7 @@ class SignalHandler:
     def __init__(self):
         self.api = None
         self.cb = None
+        self.received_sigint = False
 
     def set_resources(self, api, cb):
         self.api = api
@@ -172,6 +173,7 @@ class SignalHandler:
 
     def handle(self, sig, frame):
         print(f'收到 Ctrl+C 訊號! [{datetime.now()}]', flush=True)
+        self.received_sigint = True
         if self.api:
             self.api.stop()
             self.api.logout()
@@ -208,9 +210,9 @@ def main():
                     cb.stop = True
                     cb.join(timeout=2)  # Wait for thread to stop
                     time.sleep(config.reconnect_delay)
-                    break  # Break inner loop to create new connection
+                    continue  # Continue outer loop to create new connection
             
-            if cb.stop:  # If stopped by Ctrl+C
+            if cb.stop and signal_handler.received_sigint:  # Only break if it was Ctrl+C
                 break  # Break outer loop
             
             
