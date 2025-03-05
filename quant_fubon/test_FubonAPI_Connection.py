@@ -62,17 +62,16 @@ class Fubon:
         self.accounts = None
         self.is_login = False
         self._running = True  
+        self.retry_count = 0 
         self.max_retries = 3
         self.retry_delay = 5  # seconds
 
 
     def login(self):
-        retry_count = 0  # Initialize retry counter
         while not self.is_login and self._running:
             try:
-                print(f'登入「富邦新一代API」中... [{datetime.now()}]', flush=True)
+                print(f'登入「富邦新一代API」中... (嘗試 {self.retry_count + 1}/{self.max_retries}) [{datetime.now()}]', flush=True)
                 self.accounts = sdk.login(username, password, credential_filename, ca_password).data
-
 
                 """ 必要! 登入後，系統需要一點時間差傳回event! """
                 t0 = time.time()
@@ -85,12 +84,12 @@ class Fubon:
                 if self.cb.is_login:
                     self.is_login = True
                     print(f'成功登入「富邦新一代API」 [{datetime.now()}]', flush=True)
-                    retry_count = 0  # Reset retry count on successful login
+                    self.retry_count = 0  # Reset retry count on successful login
                 else:
                     self.is_login = False
                     print(f'登入「富邦新一代API」回傳事件有誤，正在重新登入... [{datetime.now()}]', flush=True)
-                    retry_count += 1
-                    if retry_count >= self.max_retries:
+                    self.retry_count += 1
+                    if self.retry_count >= self.max_retries:
                         print(f'登入失敗次數過多，程式結束 [{datetime.now()}]', flush=True)
                         self._running = False
                         break
@@ -103,8 +102,8 @@ class Fubon:
             except Exception as e:
                 print(f'登入「富邦新一代API」程式錯誤: {e}', flush=True)
                 traceback.print_exc()
-                retry_count += 1
-                if retry_count >= self.max_retries:
+                self.retry_count += 1
+                if self.retry_count >= self.max_retries:
                     print(f'錯誤次數過多，程式結束 [{datetime.now()}]', flush=True)
                     self._running = False
                     break
