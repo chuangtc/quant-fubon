@@ -4,6 +4,7 @@ import traceback
 from threading import Thread
 from datetime import datetime
 import time
+import random
 from fubon_neo.sdk import FubonSDK, FutOptOrder, FutOptConditionOrder, Condition, Mode
 import os
 from dotenv import load_dotenv
@@ -71,7 +72,7 @@ class EventHandler(Thread):
             sdk.set_on_event(self.on_event)
         
             while not self.stop:
-                time.sleep(1.0) # Doing work
+                time.sleep(1.0) # working hard               
 
         except Exception as e:
             print(f'EventHandler thread error: {e} [{datetime.now()}]', flush=True)
