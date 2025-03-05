@@ -190,33 +190,35 @@ def main():
     try:
         signal.signal(signal.SIGINT, signal_handler.handle)
         
-        cb = EventHandler(config)
-        api = Fubon(cb, config)
+        while True:  # Add outer loop for continuous operation
+            cb = EventHandler(config)
+            api = Fubon(cb, config)
+            signal_handler.set_resources(api, cb)  # Update signal handler resources
 
-        cb.start()
-        api.login()
+            cb.start()
+            api.login()
 
-        while api.is_login and not cb.stop:
-            time.sleep(config.retry_delay)
-            if not cb.is_login:
-                handle_connection_loss(cb, api, config)
+            # Inner loop for monitoring connection
+            while api.is_login and not cb.stop:
+                time.sleep(config.retry_delay)
+                if not cb.is_login:
+                    print(f'Connection lost, attempting reconnection [{datetime.now()}]', flush=True)
+                    api.stop()
+                    api.logout()
+                    cb.stop = True
+                    cb.join(timeout=2)  # Wait for thread to stop
+                    time.sleep(config.reconnect_delay)
+                    break  # Break inner loop to create new connection
+            
+            if cb.stop:  # If stopped by Ctrl+C
+                break  # Break outer loop
+            
             
     except KeyboardInterrupt:
         handle_shutdown(api, cb)
     finally:
         cleanup(cb)
 
-def handle_connection_loss(cb, api, config):
-    print(f'Connection lost, attempting reconnection [{datetime.now()}]', flush=True)
-    api.stop()
-    api.logout()
-    cb.stop = True
-    time.sleep(config.reconnect_delay)
-    
-    cb = EventHandler(config)
-    api = Fubon(cb, config)
-    cb.start()
-    api.login()
 
 def handle_shutdown(api, cb):
     print(f'Shutting down... [{datetime.now()}]', flush=True)
