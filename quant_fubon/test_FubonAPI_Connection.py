@@ -77,7 +77,7 @@ class Fubon:
                 t0 = time.time()
                 while not self.cb.is_login:
                     time.sleep(0.1)
-                    if (time.time() - t0) > 30.0:  # Reduced timeout to 30 seconds
+                    if (time.time() - t0) > 60.0:  # Reduced timeout to 60 seconds
                         print(f'事件碼回傳Timeout... [{datetime.now()}]!', flush=True)
                         break
 
@@ -142,7 +142,16 @@ if __name__ == '__main__':
         while api.is_login and not cb.stop:
             time.sleep(10)  # Check connection status more frequently
             if not cb.is_login:  # If connection lost
-                print(f'檢測到連線中斷，嘗試重新連線... [{datetime.now()}]', flush=True)
+                print(f'檢測到連線中斷，嘗試主動斷線重連... [{datetime.now()}]', flush=True)
+                api.stop()
+                api.logout()
+                cb.stop = True
+                time.sleep(30)  # Wait 30 seconds before reconnecting
+                
+                cb = EventHandler()
+                api = Fubon(cb)
+
+                cb.start()
                 api.login()
             
     except KeyboardInterrupt:
