@@ -97,6 +97,18 @@ class Fubon:
             except Exception as e:
                 self._handle_error(e)
 
+    def stop(self):
+        self._running = False
+
+    def logout(self):
+        self.is_login = False
+        is_logout = sdk.logout()
+        if is_logout:
+            print(f'成功登出「富邦新一代API」 [{datetime.now()}]', flush=True)
+        else:
+            print(f'登出「富邦新一代API」錯誤 [{datetime.now()}]', flush=True)
+
+
     def _attempt_login(self):
         print(f'Attempting login ({self.retry_count + 1}/{self.config.max_retries}) [{datetime.now()}]', flush=True)
         self.accounts = sdk.login(
@@ -123,7 +135,7 @@ class Fubon:
     def _handle_login_success(self):
         self.is_login = True
         self.retry_count = 0
-        print(f'Login successful [{datetime.now()}]', flush=True)
+        print(f'成功登入「富邦新一代API」 [{datetime.now()}]', flush=True)
 
     def _handle_login_failure(self):
         self.is_login = False
