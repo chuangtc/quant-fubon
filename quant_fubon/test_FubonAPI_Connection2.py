@@ -15,6 +15,9 @@ sdk = FubonSDK()
 import logging
 
 def setup_logging():
+    # Create custom level names
+    logging.addLevelName(logging.WARNING, 'WARN')
+    
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s.%(msecs)03d %(levelname)s [%(name)s] %(message)s',
