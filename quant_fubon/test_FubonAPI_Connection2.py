@@ -4,13 +4,25 @@ import traceback
 from threading import Thread
 from datetime import datetime
 import time
-import random
+import logging
 from fubon_neo.sdk import FubonSDK, FutOptOrder, FutOptConditionOrder, Condition, Mode
 import os
 from dotenv import load_dotenv
 
 """ 富邦新一代API """
 sdk = FubonSDK()
+
+import logging
+
+def setup_logging():
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s.%(msecs)03d %(levelname)s [%(name)s] %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
+    return logging.getLogger('FubonNeoAPI')
+
+logger = setup_logging()
 
 class Config:
     def __init__(self):
@@ -45,7 +57,7 @@ class EventHandler(Thread):
 
     def on_event(self, code, content):
         event_type = self.EVENT_CODES.get(code, 'Unknown event')
-        print(f'Event: {event_type} ({code}), Content: {content} [{datetime.now()}]', flush=True)
+        logger.info(f'Event: {event_type} ({code}), Content: {content}')
         
         if code in ['200', '201']:
             self._handle_login_success()
@@ -66,19 +78,22 @@ class EventHandler(Thread):
         self.is_login = False
 
     def run(self):
-        print(f'EventHandler thread started [{datetime.now()}]', flush=True)
+        logger.info('EventHandler thread started')
         
         try: 
             sdk.set_on_event(self.on_event)
         
             while not self.stop:
-                time.sleep(1.0) # working hard               
+                time.sleep(1.0) 
+                # working hard               
 
         except Exception as e:
-            print(f'EventHandler thread error: {e} [{datetime.now()}]', flush=True)
+            logger.error(f'EventHandler thread error: {e}')
+            logger.error(traceback.format_exc())
         finally:
             sdk.set_on_event(None)  # Remove event handler
-            print(f'EventHandler thread stopped [{datetime.now()}]', flush=True)
+            logger.info('EventHandler thread stopped')
+
 
 class Fubon:
     def __init__(self, event_handler, config):
@@ -105,13 +120,12 @@ class Fubon:
         self.is_login = False
         is_logout = sdk.logout()
         if is_logout:
-            print(f'成功登出「富邦新一代API」 [{datetime.now()}]', flush=True)
+            logger.info('成功登出「富邦新一代API」Fubon Neo API')
         else:
-            print(f'登出「富邦新一代API」錯誤 [{datetime.now()}]', flush=True)
-
+            logger.error('登出「富邦新一代API」錯誤 from Fubon Neo API')        
 
     def _attempt_login(self):
-        print(f'Attempting login ({self.retry_count + 1}/{self.config.max_retries}) [{datetime.now()}]', flush=True)
+        logger.info(f'Attempting login ({self.retry_count + 1}/{self.config.max_retries})')
         self.accounts = sdk.login(
             self.config.username,
             self.config.password,
@@ -128,7 +142,7 @@ class Fubon:
         start_time = time.time()
         while not self.cb.is_login:
             if time.time() - start_time > timeout:
-                print(f'Login timeout [{datetime.now()}]', flush=True)
+                logger.warning('Login timeout')
                 return False
             time.sleep(0.1)
         return True
@@ -136,7 +150,7 @@ class Fubon:
     def _handle_login_success(self):
         self.is_login = True
         self.retry_count = 0
-        print(f'成功登入「富邦新一代API」 [{datetime.now()}]', flush=True)
+        logger.info('成功登入「富邦新一代API」Fubon Neo API')
 
     def _handle_login_failure(self):
         self.is_login = False
@@ -144,21 +158,21 @@ class Fubon:
         if self.retry_count >= self.config.max_retries:
             self._handle_max_retries()
         else:
-            print(f'Login failed, retrying in {self.config.retry_delay}s [{datetime.now()}]', flush=True)
+            logger.warning(f'Login failed, retrying in {self.config.retry_delay}s')
             time.sleep(self.config.retry_delay)
 
     def _handle_max_retries(self):
-        print(f'Max retry attempts reached [{datetime.now()}]', flush=True)
+        logger.error('Max retry attempts reached')
         self._running = False
 
     def _handle_error(self, error):
-        print(f'Login error: {error} [{datetime.now()}]', flush=True)
-        traceback.print_exc()
+        logger.error(f'Login error: {error}')
+        logger.error(traceback.format_exc())
         self.retry_count += 1
         if self.retry_count >= self.config.max_retries:
             self._handle_max_retries()
         else:
-            print(f'Retrying in {self.config.retry_delay}s [{datetime.now()}]', flush=True)
+            logger.info(f'Retrying in {self.config.retry_delay}s')
             time.sleep(self.config.retry_delay)
 
 class SignalHandler:
@@ -172,7 +186,7 @@ class SignalHandler:
         self.cb = cb
 
     def handle(self, sig, frame):
-        print(f'收到 Ctrl+C 訊號! [{datetime.now()}]', flush=True)
+        logger.info('收到 Ctrl+C 訊號! Received SIGINT signal')
         self.received_sigint = True
         if self.api:
             self.api.stop()
@@ -204,11 +218,12 @@ def main():
             while api.is_login and not cb.stop:
                 time.sleep(config.retry_delay)
                 if not cb.is_login:
-                    print(f'Connection lost, attempting reconnection [{datetime.now()}]', flush=True)
+                    logger.warning('Connection lost, attempting reconnection')
                     api.stop()
                     api.logout()
                     cb.stop = True
-                    cb.join(timeout=2)  # Wait for thread to stop
+                    cb.join(timeout=2) 
+                    logger.info(f'Waiting {config.reconnect_delay} seconds before reconnecting')
                     time.sleep(config.reconnect_delay)
                     continue  # Continue outer loop to create new connection
             
@@ -223,7 +238,7 @@ def main():
 
 
 def handle_shutdown(api, cb):
-    print(f'Shutting down... [{datetime.now()}]', flush=True)
+    logger.info('Shutting down...')
     api.stop()
     api.logout()
     cb.stop = True
@@ -231,10 +246,10 @@ def handle_shutdown(api, cb):
 def cleanup(cb):
     if cb:
         cb.stop = True  # Signal thread to stop
-        cb.join(timeout=2)  # Wait up to 2 seconds for thread to finish
+        cb.join(timeout=3)  # Wait up to 3 seconds for thread to finish
         if cb.is_alive():
-            print(f'Warning: EventHandler thread did not stop cleanly [{datetime.now()}]', flush=True)
-    print(f'Program terminated [{datetime.now()}]', flush=True)
+            logger.warning('EventHandler thread did not stop cleanly')
+        logger.info('Program terminated')
 
 if __name__ == '__main__':
     main()
