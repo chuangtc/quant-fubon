@@ -78,7 +78,9 @@ class EventHandler(Thread):
         if time.time() - self.last_pong_time > self.config.pong_timeout:
             logger.warning(f'No pong received for {self.config.pong_timeout} seconds')
             self.is_login = False
-            self.stop = True        
+            self.stop = True  
+            # Trigger immediate reconnection
+            sdk.set_on_event(None)      
 
     def _handle_disconnect(self):
         self.is_login = False
@@ -109,6 +111,8 @@ class Fubon:
         self.is_login = False
         self._running = True
         self.retry_count = 0
+        self.is_manual_disconnect = False
+
 
     def login(self):
         while not self.is_login and self._running:
@@ -124,6 +128,7 @@ class Fubon:
 
     def logout(self):
         self.is_login = False
+        self.is_manual_disconnect = True
         is_logout = sdk.logout()
         if is_logout:
             logger.info('成功登出「富邦新一代API」Fubon Neo API')
@@ -226,9 +231,11 @@ def main():
                 if not cb.is_login:
                     logger.warning('Connection lost, attempting reconnection')
                     api.stop()
-                    api.logout()
+                    # Skip logout on pong miss for faster reconnect
+                    if not api.is_manual_disconnect:
+                        api.logout()
                     cb.stop = True
-                    cb.join(timeout=2) 
+                    cb.join(timeout=1) 
                     logger.info(f'Waiting {config.reconnect_delay} seconds before reconnecting')
                     time.sleep(config.reconnect_delay)
                     continue  # Continue outer loop to create new connection
