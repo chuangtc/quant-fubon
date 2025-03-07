@@ -34,10 +34,11 @@ class Config:
         self.password = os.getenv('USER_PASSWORD')
         self.credential_filename = os.getenv('PFX_PATH')
         self.ca_password = os.getenv('PFX_PASSWORD')
-        self.pong_timeout = 30  # seconds
+        self.pong_timeout = 10  # seconds
         self.max_retries = 3
-        self.retry_delay = 5  # seconds
-        self.reconnect_delay = 30  # seconds
+        self.retry_delay = 2  # seconds
+        self.reconnect_delay = 1  # seconds
+        self.connection_check_interval = 1 # seconds
 
 class EventHandler(Thread):
     EVENT_CODES = {
@@ -75,7 +76,9 @@ class EventHandler(Thread):
 
     def _handle_pong_missed(self):
         if time.time() - self.last_pong_time > self.config.pong_timeout:
+            logger.warning(f'No pong received for {self.config.pong_timeout} seconds')
             self.is_login = False
+            self.stop = True        
 
     def _handle_disconnect(self):
         self.is_login = False
@@ -88,7 +91,7 @@ class EventHandler(Thread):
         
             while not self.stop:
                 time.sleep(1.0) 
-                # working hard               
+                # working hard   
 
         except Exception as e:
             logger.error(f'EventHandler thread error: {e}')
@@ -141,7 +144,7 @@ class Fubon:
         else:
             self._handle_login_failure()
 
-    def _wait_for_login(self, timeout=60):
+    def _wait_for_login(self, timeout=30):  # Reduced from 60 to 30 seconds
         start_time = time.time()
         while not self.cb.is_login:
             if time.time() - start_time > timeout:
@@ -219,7 +222,7 @@ def main():
 
             # Inner loop for monitoring connection
             while api.is_login and not cb.stop:
-                time.sleep(config.retry_delay)
+                time.sleep(config.connection_check_interval)  # Check every second
                 if not cb.is_login:
                     logger.warning('Connection lost, attempting reconnection')
                     api.stop()
