@@ -77,10 +77,7 @@ class EventHandler(Thread):
     def _handle_pong_missed(self):
         if time.time() - self.last_pong_time > self.config.pong_timeout:
             logger.warning(f'No pong received for {self.config.pong_timeout} seconds')
-            self.is_login = False
-            self.stop = True  
-            # Trigger immediate reconnection
-            sdk.set_on_event(None)      
+            self.is_login = False 
 
     def _handle_disconnect(self):
         self.is_login = False
@@ -227,21 +224,29 @@ def main():
 
             # Inner loop for monitoring connection
             while api.is_login and not cb.stop:
-                time.sleep(config.connection_check_interval)  # Check every second
+                time.sleep(config.connection_check_interval)
                 if not cb.is_login:
                     logger.warning('Connection lost, attempting reconnection')
                     api.stop()
-                    # Skip logout on pong miss for faster reconnect
-                    if not api.is_manual_disconnect:
-                        api.logout()
+                    api.logout()
                     cb.stop = True
-                    cb.join(timeout=1) 
-                    logger.info(f'Waiting {config.reconnect_delay} seconds before reconnecting')
-                    time.sleep(config.reconnect_delay)
-                    continue  # Continue outer loop to create new connection
+                    cb.join(timeout=1)
+                    
+                     # No delay needed for pong miss reconnection
+                    if not api.is_manual_disconnect:
+                        logger.info('Immediate reconnection due to pong missed')
+                    else:
+                        logger.info(f'Waiting {config.reconnect_delay} seconds before reconnecting')
+                        time.sleep(config.reconnect_delay)
+                    break
             
-            if cb.stop and signal_handler.received_sigint:  # Only break if it was Ctrl+C
-                break  # Break outer loop
+             # Only break outer loop on Ctrl+C
+            if cb.stop and signal_handler.received_sigint:
+                break
+            
+            # Add log to show reconnection attempt
+            if not signal_handler.received_sigint:
+                logger.info('Starting reconnection sequence')
             
             
     except KeyboardInterrupt:
