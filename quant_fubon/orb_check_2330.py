@@ -14,17 +14,17 @@ PFX_PATH = os.getenv("PFX_PATH")
 PFX_PASSWORD = os.getenv("PFX_PASSWORD")
 
 
-def _timestamp_to_time(ts: int) -> time:
-    """Convert millisecond timestamp to time object."""
-    return datetime.fromtimestamp(ts / 1000).time()
+def _timestamp_to_time(ts: str) -> time:
+    """Convert ISO format timestamp string to time object."""
+    return datetime.fromisoformat(ts.replace('Z', '+00:00')).time()
 
 
 def fetch_intraday_candles(sdk: FubonSDK, symbol: str) -> List[Dict]:
     """Fetch today's intraday 1-minute candles for the given symbol."""
     rest_stock = sdk.marketdata.rest_client.stock
     result = rest_stock.intraday.candles(symbol=symbol, timeframe="1")
-    if result.is_success:
-        return result.data
+    if isinstance(result, dict) and 'data' in result:
+        return result['data']
     return []
 
 
@@ -33,7 +33,7 @@ def calculate_orb(candles: List[Dict], minutes: int = 30) -> Dict:
     start = time(9, 0)
     end = (datetime.combine(datetime.today(), start) + timedelta(minutes=minutes)).time()
 
-    opening = [c for c in candles if start <= _timestamp_to_time(c["time"]) < end]
+    opening = [c for c in candles if start <= _timestamp_to_time(c["date"]) < end]
     if not opening:
         return {}
 
