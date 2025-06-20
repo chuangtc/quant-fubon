@@ -21,16 +21,27 @@ def main():
 
     # 定義單筆訂單內容
     
+    # order = Order(
+    #     buy_sell = BSAction.Buy,
+    #     symbol = "00878",
+    #     price = None,
+    #     quantity = 1000, # 股數; 1000為一張
+    #     market_type = MarketType.Common,
+    #     price_type = PriceType.Reference,
+    #     time_in_force = TimeInForce.ROD,
+    #     order_type = OrderType.Stock,
+    #     user_def = None # optional field
+    # );
     order = Order(
         buy_sell = BSAction.Buy,
-        symbol = "00878",
-        price = None,
-        quantity = 1000, # 股數; 1000為一張
+        symbol = "0050",
+        price = "47.10",
+        quantity = 2000, # 股數; 2000為一張
         market_type = MarketType.Common,
-        price_type = PriceType.Reference,
+        price_type = PriceType.Limit,
         time_in_force = TimeInForce.ROD,
         order_type = OrderType.Stock,
-        user_def = None, # optional field
+        user_def = "From_Py", # optional field
     );
 
     # 列印訂單內容
